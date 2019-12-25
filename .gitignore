@@ -1,0 +1,7 @@
+
+# Virtual Machine Folder
+venv
+
+
+# Migrations folder
+migrations
