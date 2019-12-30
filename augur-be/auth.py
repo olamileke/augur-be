@@ -11,6 +11,11 @@ bp = Blueprint('auth', __name__)
 @bp.route('/signup', methods=['POST'])
 def signup():
     if validate(request.json, True):
+        user = User.query.filter((User.email == request.json['email'])).first()
+
+        if user is not None:
+            return {'url':'/signup'}, 403
+
         user = User(name=request.json['name'], email=request.json['email'],
                     password=generate_password_hash(request.json['password']))
         db.session.add(user)
@@ -18,7 +23,7 @@ def signup():
 
         return {'message': 'Success'}
     else:
-        abort(403)
+        return {'url': '/signup', 'message': 'Failed Validation'}, 400
 
 
 @bp.route('/login', methods=['POST'])
@@ -27,10 +32,10 @@ def login():
         user = User.query.filter((User.email == request.json['email'])).first()
 
         if user is None:
-            abort(403)
+            return {'url': '/login'}, 404
 
         if check_password_hash(user.password, request.json['password']) is False:
-            abort(403)
+            return {'url': '/login'}, 404
 
         letters = string.ascii_lowercase
         token = ''.join(random.choice(letters) for i in range(200))
@@ -40,7 +45,7 @@ def login():
 
         return {'user': schema.dumps(user)}
     else:
-        abort(403)
+        return {'url': '/login', 'message': 'Failed Validation'}, 400
 
 
 def validate(jsonData, signup=False):

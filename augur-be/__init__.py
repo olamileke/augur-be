@@ -1,6 +1,7 @@
 from flask import Flask
 from .models import db
-from .auth import bp
+from . import auth
+from . import stocks
 from flask_migrate import Migrate
 import os
 
@@ -33,6 +34,7 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     # Registering the app blueprints
-    app.register_blueprint(bp)
+    app.register_blueprint(auth.bp)
+    app.register_blueprint(stocks.bp)
 
     return app
