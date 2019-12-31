@@ -13,18 +13,17 @@ def explore():
     with open(path.join(baseDir, 'augur-be', 'symbols.txt')) as reader:
         allSymbols = list(reader)
 
-    usedSymbols = getUsedSymbols(allSymbols)
-    data = yf.download(' '.join(usedSymbols), start="2019-12-27",
-                       end="2019-12-28", group_by="ticker")
+    # usedSymbols = getUsedSymbols(allSymbols)
+    data = yf.download(' '.join(allSymbols), period="2d", group_by="ticker")
 
-    return {'data': transformData(data, usedSymbols)}
+    return {'data': transformData(data, allSymbols)}
 
 
 @bp.route('/stock/view/<string:symbol>')
 def view(symbol):
     ticker = yf.Ticker(symbol)
 
-    return {'info': ticker.info}
+    return {'data': ticker.info}
 
 
 
