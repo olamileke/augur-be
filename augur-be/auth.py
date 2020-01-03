@@ -14,7 +14,7 @@ def signup():
         user = User.query.filter((User.email == request.json['email'])).first()
 
         if user is not None:
-            return {'url':'/signup'}, 403
+            return {'url': '/signup'}, 403
 
         user = User(name=request.json['name'], email=request.json['email'],
                     password=generate_password_hash(request.json['password']))
@@ -41,9 +41,11 @@ def login():
         token = ''.join(random.choice(letters) for i in range(200))
         user.api_token = token
         db.session.commit()
-        schema = UserSchema()
 
-        return {'user': schema.dumps(user)}
+        user_info = {'name': user.name,
+                     'api_token': user.api_token, 'avatar': user.avatar}
+
+        return {'user': user_info}
     else:
         return {'url': '/login', 'message': 'Failed Validation'}, 400
 
