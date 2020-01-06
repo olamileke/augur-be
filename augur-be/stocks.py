@@ -5,6 +5,7 @@ from random import randint
 from .models import db, Stock
 from .middlewares import authMiddleware
 import json
+import time
 
 bp = Blueprint('stocks', __name__)
 baseDir = path.abspath(path.dirname('__file__'))
@@ -29,11 +30,15 @@ def view(symbol):
     stock = Stock.query.filter((Stock.symbol == symbol) & (
         Stock.user_id == g.user_id)).first()
     following = True
+    five_day_history = ticker.history(period="5d")
+    single_month_history = ticker.history(period="1mo")
 
     if stock is None:
         following = False
 
-    return {'data': ticker.info, 'following': following}
+    return {'data': ticker.info, 'following': following,
+            'five_day_history': formatFiveDayHistory(five_day_history),
+            'single_month_history': formatMonthHistory(single_month_history)}
 
 
 @bp.route('/follow/<string:symbol>')
@@ -136,3 +141,39 @@ def createSingleStockObject(data, symbol):
     stock['priceChange'] = priceChange
 
     return stock
+
+
+def formatFiveDayHistory(data):
+    closeData = json.loads(data['Close'].to_json())
+    days = []
+    values = []
+    for k, v in closeData.items():
+        formatted_k = int(k) / 1000
+        day = time.strftime('%d %b', time.localtime(formatted_k))
+        days.append(day)
+        values.append(v)
+
+    return {'dates': days, 'values': values}
+
+
+def formatMonthHistory(data):
+    closeData = json.loads(data['Close'].to_json())
+    days = []
+    values = []
+    dates = list(closeData) 
+    i = len(dates) - 1
+
+    while i > 0:
+        formatted_date = int(dates[i]) / 1000
+        day = time.strftime('%d %b', time.localtime(formatted_date))
+        days.append(day)
+        values.append(closeData[dates[i]])
+
+        i -= 5
+
+    
+    days.reverse()
+    values.reverse()
+
+    return {'dates': days, 'values': values}
+
